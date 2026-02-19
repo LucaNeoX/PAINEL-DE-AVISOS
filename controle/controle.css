@@ -1,0 +1,39 @@
+/*
+  Controle
+  Arquivo: /controle/controle.css
+
+  Estilos específicos para o painel de controle e contadores.
+*/
+
+.card.mini {
+  padding: 0.9rem 1rem;
+}
+
+.card-title-sm {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.controle-number {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.controle-number.danger {
+  color: var(--color-danger);
+}
+
+.form-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column;
+  }
+}
+

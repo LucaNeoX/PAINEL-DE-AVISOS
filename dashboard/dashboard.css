@@ -1,0 +1,77 @@
+/*
+  Dashboard
+  Arquivo: /dashboard/dashboard.css
+
+  Estilos específicos para a página de dashboard.
+*/
+
+.dashboard-number {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 0.4rem;
+}
+
+.dashboard-number.danger {
+  color: var(--color-danger);
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.7rem;
+  background: rgba(17, 24, 39, 0.9);
+  border: 1px solid rgba(55, 65, 81, 0.7);
+  font-size: 0.9rem;
+}
+
+.alert-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.alert-title {
+  font-weight: 500;
+}
+
+.alert-subtitle {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.alert-badge-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
+.alert-days {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.alert-empty {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/*
+  Ajustes específicos para o modo claro (light-mode)
+  - Deixa os alertas com fundo mais leve, sem "bloco preto"
+*/
+body.light-mode .alert-item {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(209, 213, 219, 0.9); /* cinza claro */
+}
+
+

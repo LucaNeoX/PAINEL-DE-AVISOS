@@ -1,0 +1,78 @@
+/*
+  Histórico (explorador de arquivos)
+  Arquivo: /historico/historico.css
+
+  Estilos para a árvore de pastas simulando um explorador de arquivos.
+*/
+
+.tree-container {
+  font-size: 0.9rem;
+}
+
+.tree-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.2rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.tree-item:hover {
+  background: rgba(31, 41, 55, 0.9);
+}
+
+.tree-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tree-children {
+  margin-left: 1.1rem;
+  border-left: 1px dashed rgba(55, 65, 81, 0.7);
+  padding-left: 0.6rem;
+}
+
+.tree-toggle {
+  width: 0.9rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.tree-icon {
+  font-size: 0.9rem;
+}
+
+.tree-file {
+  color: var(--color-text-main);
+}
+
+.tree-folder {
+  font-weight: 500;
+}
+
+.tree-muted {
+  color: var(--color-text-muted);
+}
+
+.tree-node.collapsed > .tree-children {
+  display: none;
+}
+
+/*
+  Ajustes específicos para o modo claro (light-mode)
+  - Hover da árvore mais suave, semelhante ao menu lateral
+*/
+body.light-mode .tree-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+

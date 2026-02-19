@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <!--
+      Visualizar Empresas
+      Caminho: /visualizar/index.html
+
+      Responsável por:
+      - Listar empresas em blocos horizontais
+      - Exibir status visual (verde / amarelo / vermelho) baseado na data de término
+      - Interações:
+          * Clique simples: mostrar botão "Cadastrar Filial"
+          * Clique duplo: mostrar detalhes + botões para visualizar PDFs
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visualizar Empresas - Sistema de Controle de Documentos</title>
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/layout.css" />
+    <link rel="stylesheet" href="./visualizar.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- MENU LATERAL FIXO -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">SD</div>
+          <div class="sidebar-title">
+            <span class="sidebar-title-main">Docs Ocupacionais</span>
+            <span class="sidebar-title-sub">Visualizar empresas</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div>
+            <div class="nav-section-label">Navegação</div>
+            <a class="nav-item" href="../dashboard/index.html">
+              <div class="nav-item-icon">🏠</div>
+              <span>Dashboard</span>
+            </a>
+            <a class="nav-item" href="../cadastro/index.html">
+              <div class="nav-item-icon">➕</div>
+              <span>Cadastrar empresa</span>
+            </a>
+            <a class="nav-item active" href="../visualizar/index.html">
+              <div class="nav-item-icon">📋</div>
+              <span>Visualizar empresas</span>
+            </a>
+            <a class="nav-item" href="../historico/index.html">
+              <div class="nav-item-icon">📂</div>
+              <span>Histórico</span>
+            </a>
+            <a class="nav-item" href="../controle/index.html">
+              <div class="nav-item-icon">📊</div>
+              <span>Controle</span>
+            </a>
+            <!-- Aba Usuários: visível apenas para administradores via JavaScript -->
+            <a
+              class="nav-item"
+              href="../usuarios/index.html"
+              data-admin-only="true"
+            >
+              <div class="nav-item-icon">👥</div>
+              <span>Usuários</span>
+            </a>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-user">
+            <div
+              class="sidebar-user-avatar"
+              data-sidebar-user-avatar
+            ></div>
+            <div class="sidebar-user-info">
+              <div
+                class="sidebar-user-name"
+                data-sidebar-user-name
+              >
+                Usuário
+              </div>
+              <div
+                class="sidebar-user-role"
+                data-sidebar-user-role
+              >
+                Perfil
+              </div>
+            </div>
+          </div>
+          <button
+            class="btn btn-secondary sidebar-logout-btn"
+            type="button"
+            data-action="logout"
+          >
+            Sair
+          </button>
+        </div>
+      </aside>
+
+      <!-- CONTEÚDO PRINCIPAL -->
+      <main class="app-main">
+        <header class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">Empresas cadastradas</h1>
+            <p class="page-subtitle">
+              Clique para gerenciar filiais e visualizar documentos.
+            </p>
+          </div>
+          <div class="page-actions">
+            <!-- Botão de alternância de tema (claro/escuro) -->
+            <button
+              type="button"
+              class="btn btn-secondary theme-toggle"
+              data-theme-toggle
+            >
+              <span class="theme-toggle-icon" data-theme-icon>🌙</span>
+              <span class="theme-toggle-label" data-theme-label
+                >Modo escuro</span
+              >
+            </button>
+          </div>
+        </header>
+
+        <section class="page-content">
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Matrizes</div>
+                <div class="card-subtitle">
+                  Cada bloco representa uma empresa principal.
+                </div>
+              </div>
+            </div>
+            <div id="lista-empresas" class="empresas-list">
+              <!-- Blocos de empresas serão inseridos via JavaScript -->
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modal simples para visualização de PDFs -->
+    <div class="modal" id="pdf-modal" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close></div>
+      <div class="modal-content card fade-in">
+        <header class="modal-header">
+          <div>
+            <h2 id="pdf-modal-title">Documento</h2>
+            <p class="text-muted" id="pdf-modal-subtitle"></p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-modal-close
+          >
+            Fechar
+          </button>
+        </header>
+        <div class="modal-body">
+          <iframe
+            id="pdf-viewer"
+            title="Visualização de PDF"
+            frameborder="0"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/storage.js"></script>
+    <script src="../assets/js/utils.js"></script>
+    <script src="../assets/js/theme.js"></script>
+    <script src="./visualizar.js"></script>
+  </body>
+</html>
+

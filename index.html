@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <!--
+      Sistema de Controle de Documentos Ocupacionais
+      Arquivo: index.html (ponto inicial do sistema)
+
+      Função:
+      - Este arquivo apenas redireciona o usuário para a tela de login real,
+        localizada em /login/index.html.
+      - Foi criado assim para cumprir o requisito de "abrir o sistema pelo index.html"
+        na raiz do projeto.
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Controle de Documentos Ocupacionais</title>
+    <meta http-equiv="refresh" content="0; url=login/index.html" />
+    <style>
+      /* Estilo mínimo apenas para caso o redirecionamento não funcione automaticamente */
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #0b1b33, #1f4068);
+        color: #ffffff;
+      }
+      .fallback {
+        text-align: center;
+      }
+      .fallback a {
+        color: #61dafb;
+        text-decoration: none;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fallback">
+      <h1>Sistema de Controle de Documentos Ocupacionais</h1>
+      <p>Redirecionando para a tela de login...</p>
+      <p>
+        Se nada acontecer,
+        <a href="login/index.html">clique aqui para acessar o login</a>.
+      </p>
+    </div>
+    <script>
+      // Redirecionamento via JavaScript como alternativa ao meta refresh.
+      // Isso garante que mesmo em navegadores que bloqueiam meta refresh,
+      // o usuário seja enviado para a tela de login.
+      (function () {
+        try {
+          window.location.href = "login/index.html";
+        } catch (e) {
+          // Caso ocorra algum erro, o usuário ainda pode usar o link manual acima.
+          console.error("Falha ao redirecionar para a tela de login:", e);
+        }
+      })();
+    </script>
+  </body>
+</html>
+

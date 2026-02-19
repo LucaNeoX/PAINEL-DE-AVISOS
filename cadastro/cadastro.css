@@ -1,0 +1,26 @@
+/*
+  Cadastro de Empresa / Filial
+  Arquivo: /cadastro/cadastro.css
+
+  Estilos específicos do formulário de cadastro.
+*/
+
+.divider {
+  border: none;
+  border-top: 1px solid rgba(55, 65, 81, 0.8);
+  margin: 1.2rem 0;
+}
+
+.form-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.7rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column;
+  }
+}
+

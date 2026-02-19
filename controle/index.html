@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <!--
+      Controle
+      Caminho: /controle/index.html
+
+      Responsável por:
+      - Filtrar empresas por período de cadastro
+      - Exibir contadores:
+          * Empresas cadastradas no período
+          * Quantidade de PCMSO
+          * Quantidade de LTCAT
+          * Quantidade de PGR
+          * Quantos vencidos
+          * Quantos ativos
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controle - Sistema de Controle de Documentos</title>
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/layout.css" />
+    <link rel="stylesheet" href="./controle.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- MENU LATERAL FIXO -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">SD</div>
+          <div class="sidebar-title">
+            <span class="sidebar-title-main">Docs Ocupacionais</span>
+            <span class="sidebar-title-sub">Controle</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div>
+            <div class="nav-section-label">Navegação</div>
+            <a class="nav-item" href="../dashboard/index.html">
+              <div class="nav-item-icon">🏠</div>
+              <span>Dashboard</span>
+            </a>
+            <a class="nav-item" href="../cadastro/index.html">
+              <div class="nav-item-icon">➕</div>
+              <span>Cadastrar empresa</span>
+            </a>
+            <a class="nav-item" href="../visualizar/index.html">
+              <div class="nav-item-icon">📋</div>
+              <span>Visualizar empresas</span>
+            </a>
+            <a class="nav-item" href="../historico/index.html">
+              <div class="nav-item-icon">📂</div>
+              <span>Histórico</span>
+            </a>
+            <a class="nav-item active" href="../controle/index.html">
+              <div class="nav-item-icon">📊</div>
+              <span>Controle</span>
+            </a>
+            <!-- Aba Usuários: visível apenas para administradores via JavaScript -->
+            <a
+              class="nav-item"
+              href="../usuarios/index.html"
+              data-admin-only="true"
+            >
+              <div class="nav-item-icon">👥</div>
+              <span>Usuários</span>
+            </a>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-user">
+            <div
+              class="sidebar-user-avatar"
+              data-sidebar-user-avatar
+            ></div>
+            <div class="sidebar-user-info">
+              <div
+                class="sidebar-user-name"
+                data-sidebar-user-name
+              >
+                Usuário
+              </div>
+              <div
+                class="sidebar-user-role"
+                data-sidebar-user-role
+              >
+                Perfil
+              </div>
+            </div>
+          </div>
+          <button
+            class="btn btn-secondary sidebar-logout-btn"
+            type="button"
+            data-action="logout"
+          >
+            Sair
+          </button>
+        </div>
+      </aside>
+
+      <!-- CONTEÚDO PRINCIPAL -->
+      <main class="app-main">
+        <header class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">Painel de controle</h1>
+            <p class="page-subtitle">
+              Aplique filtros por período para analisar os documentos.
+            </p>
+          </div>
+          <div class="page-actions">
+            <!-- Botão de alternância de tema (claro/escuro) -->
+            <button
+              type="button"
+              class="btn btn-secondary theme-toggle"
+              data-theme-toggle
+            >
+              <span class="theme-toggle-icon" data-theme-icon>🌙</span>
+              <span class="theme-toggle-label" data-theme-label
+                >Modo escuro</span
+              >
+            </button>
+          </div>
+        </header>
+
+        <section class="page-content">
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Filtro por período</div>
+                <div class="card-subtitle">
+                  Baseado na data de cadastro da empresa (criadoEm).
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group form-group-inline">
+              <div>
+                <label for="filtroDataInicio">Data inicial</label>
+                <input
+                  type="date"
+                  id="filtroDataInicio"
+                  class="form-control"
+                />
+              </div>
+              <div>
+                <label for="filtroDataFim">Data final</label>
+                <input type="date" id="filtroDataFim" class="form-control" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn" id="btn-aplicar-filtro">
+                Aplicar filtro
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-limpar">
+                Limpar
+              </button>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Resumo do período</div>
+                <div class="card-subtitle">
+                  Indicadores gerais de empresas e documentos.
+                </div>
+              </div>
+            </div>
+
+            <div class="card-grid">
+              <article class="card mini">
+                <div class="card-title-sm">Empresas no período</div>
+                <div class="controle-number" id="c-empresas">0</div>
+              </article>
+
+              <article class="card mini">
+                <div class="card-title-sm">PCMSO</div>
+                <div class="controle-number" id="c-pcmso">0</div>
+              </article>
+
+              <article class="card mini">
+                <div class="card-title-sm">LTCAT</div>
+                <div class="controle-number" id="c-ltcat">0</div>
+              </article>
+
+              <article class="card mini">
+                <div class="card-title-sm">PGR</div>
+                <div class="controle-number" id="c-pgr">0</div>
+              </article>
+
+              <article class="card mini">
+                <div class="card-title-sm">Documentos ativos</div>
+                <div class="controle-number" id="c-ativos">0</div>
+              </article>
+
+              <article class="card mini">
+                <div class="card-title-sm">Documentos vencidos</div>
+                <div class="controle-number danger" id="c-vencidos">0</div>
+              </article>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/storage.js"></script>
+    <script src="../assets/js/utils.js"></script>
+    <script src="../assets/js/theme.js"></script>
+    <script src="./controle.js"></script>
+  </body>
+</html>
+

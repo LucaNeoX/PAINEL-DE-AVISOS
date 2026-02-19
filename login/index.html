@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <!--
+      Tela de Login
+      Caminho: /login/index.html
+
+      Responsável por:
+      - Autenticar o usuário
+      - Redirecionar para o dashboard após login
+      - Salvar sessão no LocalStorage
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Sistema de Controle de Documentos Ocupacionais</title>
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/login.css" />
+  </head>
+  <body>
+    <div class="login-page">
+      <div class="login-card fade-in">
+        <div class="login-card-left">
+          <div class="login-logo">SD</div>
+          <h1>Sistema de Controle de Documentos Ocupacionais</h1>
+          <p class="text-muted">
+            Controle prático de PCMSO, LTCAT e PGR com alertas automáticos de
+            vencimento.
+          </p>
+          <ul class="login-highlights">
+            <li>
+              <span class="dot"></span> Alertas de vencimento em até 90 dias
+            </li>
+            <li><span class="dot"></span> Histórico por ano e filial</li>
+            <li><span class="dot"></span> Painel de controle por período</li>
+          </ul>
+        </div>
+
+        <div class="login-card-right">
+          <h2>Entrar</h2>
+          <p class="text-muted mb-3">
+            Use o usuário padrão para acessar na primeira vez.
+          </p>
+
+          <form id="login-form">
+            <div class="form-group">
+              <label for="email">E-mail</label>
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                placeholder="seuemail@empresa.com"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Senha</label>
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                placeholder="Digite sua senha"
+                required
+              />
+            </div>
+
+            <div class="login-actions">
+              <button type="submit" class="btn">Acessar sistema</button>
+            </div>
+
+            <div id="login-feedback" class="feedback error" aria-live="polite">
+              <!-- Mensagens de erro/sucesso de login aparecem aqui via JS -->
+            </div>
+          </form>
+
+          <div class="login-hint mt-4">
+            <p class="text-muted">Usuário administrador padrão:</p>
+            <div class="hint-box">
+              <div><strong>Email:</strong> pereira@gmai.come</div>
+              <div><strong>Senha:</strong> 12345678</div>
+              <div><strong>Perfil:</strong> admin</div>
+            </div>
+            <p class="text-muted mt-2">
+              Também existe um usuário de exemplo:
+              <span class="chip">
+                <span>usuario@example.com</span>
+                <span>| senha: 123456</span>
+                <span>| perfil: usuário</span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/auth.js"></script>
+    <script src="./login.js"></script>
+  </body>
+</html>
+

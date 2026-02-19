@@ -1,0 +1,147 @@
+/*
+  Gestão de Usuários
+  Arquivo: /usuarios/usuarios.css
+
+  Estilos específicos para a interface de cadastro e listagem
+  de usuários, em formato de tabela moderna.
+*/
+
+.usuarios-divider {
+  border: none;
+  border-top: 1px solid rgba(55, 65, 81, 0.8);
+  margin: 1.2rem 0;
+}
+
+.usuarios-lista {
+  margin-top: 0.2rem;
+}
+
+.usuarios-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.usuarios-tabela thead {
+  background: rgba(31, 41, 55, 0.8);
+}
+
+.usuarios-tabela th,
+.usuarios-tabela td {
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+}
+
+.usuarios-tabela th {
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid rgba(55, 65, 81, 0.9);
+}
+
+.usuarios-tabela tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.usuarios-tabela tbody tr:nth-child(odd) {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.usuarios-tabela tbody tr:hover {
+  background: rgba(37, 99, 235, 0.15);
+}
+
+.usuarios-acoes {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.usuarios-acoes .btn {
+  padding-inline: 0.7rem;
+  padding-block: 0.25rem;
+  font-size: 0.78rem;
+}
+
+.usuarios-badge-perfil {
+  font-size: 0.78rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(55, 65, 81, 0.9);
+}
+
+.usuarios-badge-perfil.admin {
+  border-color: rgba(37, 99, 235, 0.9);
+  color: #bfdbfe;
+}
+
+.usuarios-badge-perfil.usuario {
+  border-color: rgba(107, 114, 128, 0.9);
+  color: var(--color-text-muted);
+}
+
+.usuarios-hint {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 720px) {
+  .usuarios-tabela thead {
+    display: none;
+  }
+
+  .usuarios-tabela,
+  .usuarios-tabela tbody,
+  .usuarios-tabela tr,
+  .usuarios-tabela td {
+    display: block;
+    width: 100%;
+  }
+
+  .usuarios-tabela tr {
+    margin-bottom: 0.7rem;
+    border-radius: 0.7rem;
+    overflow: hidden;
+  }
+
+  .usuarios-tabela td {
+    padding: 0.35rem 0.7rem;
+  }
+
+  .usuarios-tabela td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  .usuarios-acoes {
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+}
+
+/*
+  Ajustes específicos para o modo claro (light-mode)
+  - Clareia cabeçalho e linhas da tabela de usuários
+  - Clareia o "badge" de perfil
+*/
+body.light-mode .usuarios-tabela thead {
+  background: #f3f4f6;
+}
+
+body.light-mode .usuarios-tabela tbody tr:nth-child(even),
+body.light-mode .usuarios-tabela tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+body.light-mode .usuarios-tabela tbody tr:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.light-mode .usuarios-badge-perfil {
+  background: #f3f4f6;
+  border-color: rgba(209, 213, 219, 0.9);
+}
+
+

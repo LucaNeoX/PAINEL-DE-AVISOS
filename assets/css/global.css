@@ -1,0 +1,405 @@
+/*
+  Sistema de Controle de Documentos Ocupacionais
+  Arquivo: assets/css/global.css
+
+  Objetivo:
+  - Definir estilos globais reutilizáveis em todas as telas:
+    * Reset básico
+    * Tipografia
+    * Cores padrão (azul escuro e cinza)
+    * Botões
+    * Inputs
+    * Cartões genéricos
+*/
+
+/* Reset básico para garantir consistência entre navegadores */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  /* As cores reais de fundo/texto são controladas via CSS Variables,
+     que mudam conforme o tema (claro/escuro). */
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Paleta de cores base do sistema (valores padrão) */
+:root {
+  /* Essas variáveis são sobrescritas pelas classes .light-mode e .dark-mode
+     aplicadas no <body>. Aqui definimos valores padrão (escuro). */
+  --color-bg-main: #0b1524;
+  --color-bg-elevated: #111827;
+  --color-bg-elevated-soft: #1f2933;
+  --color-app-shell-bg: radial-gradient(circle at top, #111827, #020617);
+  --color-card-bg: radial-gradient(circle at top left, #1f2937, #020617);
+  --color-sidebar-bg: #020617;
+  --color-input-bg: #020617;
+
+  --color-primary: #2563eb; /* Azul moderno */
+  --color-primary-soft: rgba(37, 99, 235, 0.15);
+  --color-primary-hover: #1d4ed8;
+  --color-border-soft: #374151;
+  --color-text-main: #e5e7eb;
+  --color-text-muted: #9ca3af;
+  --color-success: #22c55e;
+  --color-warning: #facc15;
+  --color-danger: #ef4444;
+}
+
+/* Tema escuro (modo padrão do sistema)
+   - Aplicado quando o <body> possui a classe .dark-mode */
+body.dark-mode {
+  --color-bg-main: #1e1e2f;
+  --color-bg-elevated: #111827;
+  --color-bg-elevated-soft: #1f2933;
+  --color-app-shell-bg: radial-gradient(circle at top, #111827, #020617);
+  --color-card-bg: radial-gradient(circle at top left, #1f2937, #020617);
+  --color-sidebar-bg: #020617;
+  --color-input-bg: #020617;
+
+  --color-text-main: #e5e7eb;
+  --color-text-muted: #9ca3af;
+  --color-border-soft: #374151;
+}
+
+/* Tema claro
+   - Aplicado quando o <body> possui a classe .light-mode */
+body.light-mode {
+  --color-bg-main: #f9fafb;
+  --color-bg-elevated: #ffffff;
+  --color-bg-elevated-soft: #e5e7eb;
+  --color-app-shell-bg: linear-gradient(135deg, #eff6ff, #e5e7eb);
+  --color-card-bg: radial-gradient(circle at top left, #ffffff, #e5e7eb);
+  --color-sidebar-bg: #dbeafe; /* Azul claro sugerido para o menu */
+  --color-input-bg: #ffffff;
+
+  --color-text-main: #111827;
+  --color-text-muted: #6b7280;
+  --color-border-soft: #d1d5db;
+}
+
+/* Títulos e textos */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+p,
+span,
+label {
+  color: var(--color-text-main);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Botões padrão do sistema */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--color-primary);
+  color: #f9fafb;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.45);
+}
+
+.btn:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.65);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.55);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  background: rgba(31, 41, 55, 0.9);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+/* Campos de formulário padrão */
+.form-control {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-input-bg);
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+  background: var(--color-input-bg);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.form-group-inline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.9rem;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #d1d5db;
+}
+
+textarea.form-control {
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* Mensagens de feedback */
+.feedback {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.feedback.error {
+  color: var(--color-danger);
+}
+
+.feedback.success {
+  color: var(--color-success);
+}
+
+/* Cartões genéricos reutilizáveis */
+.card {
+  /* O fundo do cartão usa uma variável de tema,
+     facilitando a mudança entre modo claro/escuro. */
+  background: var(--color-card-bg);
+  border-radius: 1rem;
+  border: 1px solid rgba(55, 65, 81, 0.6);
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.7);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.card-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+/* Badges de status para reutilização em várias telas */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.badge-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+}
+
+.badge-success {
+  background: rgba(22, 163, 74, 0.15);
+  color: #bbf7d0;
+}
+
+.badge-success .badge-dot {
+  background: var(--color-success);
+}
+
+.badge-warning {
+  background: rgba(234, 179, 8, 0.12);
+  color: #facc15;
+}
+
+.badge-warning .badge-dot {
+  background: var(--color-warning);
+}
+
+.badge-danger {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fecaca;
+}
+
+.badge-danger .badge-dot {
+  background: var(--color-danger);
+}
+
+/* Utilitários genéricos */
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-3 {
+  margin-top: 0.75rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(31, 41, 55, 0.9);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* Animações suaves reutilizáveis */
+.fade-in {
+  animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+  ============================
+  Ajustes específicos do modo claro
+  (Não afetam o modo escuro)
+  ============================
+*/
+
+/* 1) Remover sombras no modo claro e deixar visual mais "flat" */
+body.light-mode .card {
+  /* Remove sombra pesada dos cards apenas no modo claro */
+  box-shadow: none;
+  /* Borda mais suave, usando a cor de borda do tema claro */
+  border: 1px solid var(--color-border-soft);
+}
+
+/* Também deixamos botões mais planos no modo claro,
+   sem alterar o comportamento no modo escuro. */
+body.light-mode .btn {
+  box-shadow: none;
+}
+
+body.light-mode .btn:hover {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+

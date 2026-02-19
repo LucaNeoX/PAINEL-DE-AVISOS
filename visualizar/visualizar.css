@@ -1,0 +1,197 @@
+/*
+  Visualizar Empresas
+  Arquivo: /visualizar/visualizar.css
+
+  Estilos específicos para a listagem de empresas e filiais.
+*/
+
+.empresas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* Wrapper que agrupa matriz + bloco de filiais */
+.empresa-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.empresa-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.8rem;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(55, 65, 81, 0.8);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.12s ease;
+}
+
+.empresa-card:hover {
+  border-color: rgba(59, 130, 246, 0.7);
+  transform: translateY(-1px);
+}
+
+.empresa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.empresa-nome {
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.empresa-subinfo {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.empresa-actions {
+  display: none;
+  margin-top: 0.4rem;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.empresa-card.mostra-filial .empresa-actions {
+  display: flex;
+}
+
+.empresa-detalhes {
+  display: none;
+  margin-top: 0.4rem;
+  border-top: 1px solid rgba(55, 65, 81, 0.8);
+  padding-top: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.empresa-card.expandida .empresa-detalhes {
+  display: block;
+}
+
+.empresa-doc-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+/* Lista de filiais exibida abaixo da matriz */
+.empresa-filiais-list {
+  margin-left: 1.4rem;
+  padding-left: 0.7rem;
+  border-left: 1px dashed rgba(55, 65, 81, 0.8);
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.empresa-filiais-list.aberta {
+  display: flex;
+}
+
+/* Card de filial: mesmo estilo base, porém levemente recuado visualmente */
+.empresa-card-filial {
+  margin-left: 0.2rem;
+}
+
+/* Modal simples para visualização de PDFs */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 50;
+}
+
+.modal.open {
+  display: flex;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.modal-content {
+  position: relative;
+  max-width: 960px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.modal-body {
+  flex: 1;
+  min-height: 300px;
+}
+
+#pdf-viewer {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  background: #020617;
+}
+
+@media (max-width: 640px) {
+  .empresa-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .empresa-actions {
+    justify-content: flex-start;
+  }
+}
+
+/*
+  Ajustes específicos para o modo claro (light-mode)
+  - Clareia cartões, chips e área de visualização de PDF
+*/
+
+body.light-mode .empresa-card {
+  background: #ffffff;
+  border-color: rgba(209, 213, 219, 0.9); /* cinza claro */
+}
+
+body.light-mode .empresa-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.5);
+}
+
+body.light-mode .filial-chip {
+  background: #f3f4f6;
+  border-color: rgba(209, 213, 219, 0.9);
+}
+
+body.light-mode .modal-backdrop {
+  /* Mantém o fundo escurecido, porém um pouco mais suave no modo claro */
+  background: rgba(0, 0, 0, 0.45);
+}
+
+body.light-mode #pdf-viewer {
+  background: #ffffff;
+}
+
+
