@@ -1,26 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
-    <!--
-      Gestão de Usuários
-      Caminho: /usuarios/index.html
-
-      Responsável por:
-      - Cadastrar novos usuários (apenas ADMIN)
-      - Listar usuários cadastrados
-      - Editar e excluir usuários (com restrições)
-
-      Regras importantes:
-      - Apenas ADMIN pode acessar esta tela (verificado em usuarios.js)
-      - Não permitir e-mails duplicados
-      - Senha com no mínimo 6 caracteres
-      - Não permitir excluir:
-          * o próprio usuário logado
-          * o admin principal padrão (lucas@gmail.com)
-    -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Usuários - Sistema de Controle de Documentos</title>
+    <title>Usuários - Sistema de Controle de Documentos Ocupacionais</title>
     <link rel="stylesheet" href="../assets/css/global.css" />
     <link rel="stylesheet" href="../assets/css/layout.css" />
     <link rel="stylesheet" href="./usuarios.css" />
@@ -33,7 +16,7 @@
           <div class="sidebar-logo">SD</div>
           <div class="sidebar-title">
             <span class="sidebar-title-main">Docs Ocupacionais</span>
-            <span class="sidebar-title-sub">Gestão de usuários</span>
+            <span class="sidebar-title-sub">Gestão de Usuários</span>
           </div>
         </div>
 
@@ -60,13 +43,7 @@
               <div class="nav-item-icon">📊</div>
               <span>Controle</span>
             </a>
-            <!-- Aqui a aba Usuários fica ativa, e o próprio link é marcado
-                 como "apenas admin" para reforçar a regra visual -->
-            <a
-              class="nav-item active"
-              href="../usuarios/index.html"
-              data-admin-only="true"
-            >
+            <a class="nav-item active" href="../usuarios/index.html">
               <div class="nav-item-icon">👥</div>
               <span>Usuários</span>
             </a>
@@ -75,32 +52,13 @@
 
         <div class="sidebar-footer">
           <div class="sidebar-user">
-            <div
-              class="sidebar-user-avatar"
-              data-sidebar-user-avatar
-            ></div>
+            <div class="sidebar-user-avatar" data-sidebar-user-avatar></div>
             <div class="sidebar-user-info">
-              <div
-                class="sidebar-user-name"
-                data-sidebar-user-name
-              >
-                Usuário
-              </div>
-              <div
-                class="sidebar-user-role"
-                data-sidebar-user-role
-              >
-                Perfil
-              </div>
+              <div class="sidebar-user-name" data-sidebar-user-name>Usuário</div>
+              <div class="sidebar-user-role" data-sidebar-user-role>Perfil</div>
             </div>
           </div>
-          <button
-            class="btn btn-secondary sidebar-logout-btn"
-            type="button"
-            data-action="logout"
-          >
-            Sair
-          </button>
+          <button class="btn btn-secondary sidebar-logout-btn" type="button" data-action="logout">Sair</button>
         </div>
       </aside>
 
@@ -110,122 +68,97 @@
           <div class="page-title-group">
             <h1 class="page-title">Usuários do sistema</h1>
             <p class="page-subtitle">
-              Controle de contas de acesso e perfis. Apenas administradores
-              podem gerenciar usuários.
+              Cadastre e gerencie quem tem acesso ao sistema.
             </p>
           </div>
           <div class="page-actions">
-            <!-- Botão de alternância de tema (claro/escuro) -->
-            <button
-              type="button"
-              class="btn btn-secondary theme-toggle"
-              data-theme-toggle
-            >
+            <!-- Botão de alternância de tema -->
+            <button type="button" class="btn btn-secondary theme-toggle" data-theme-toggle>
               <span class="theme-toggle-icon" data-theme-icon>🌙</span>
-              <span class="theme-toggle-label" data-theme-label
-                >Modo escuro</span
-              >
+              <span class="theme-toggle-label" data-theme-label>Modo escuro</span>
             </button>
           </div>
         </header>
 
-        <section class="page-content page-content-narrow">
-          <section class="card fade-in">
+        <section class="page-content">
+          <!-- Formulário de cadastro de usuário -->
+          <section class="card mb-3" id="cadastro-usuario-card">
             <div class="card-header">
               <div>
-                <div class="card-title">Cadastrar novo usuário</div>
-                <div class="card-subtitle">
-                  Preencha os dados abaixo. Apenas administradores podem
-                  cadastrar, editar ou excluir usuários.
-                </div>
+                <div class="card-title">Novo usuário</div>
+                <div class="card-subtitle">Cadastre um novo administrador ou usuário padrão.</div>
               </div>
             </div>
-
-            <form id="usuario-form">
-              <input type="hidden" id="usuario-id" />
-
-              <div class="form-group">
-                <label for="nomeUsuario">Nome completo</label>
-                <input
-                  type="text"
-                  id="nomeUsuario"
-                  class="form-control"
-                  required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="emailUsuario">E-mail</label>
-                <input
-                  type="email"
-                  id="emailUsuario"
-                  class="form-control"
-                  required
-                />
-              </div>
-
-              <div class="form-group form-group-inline">
-                <div>
-                  <label for="senhaUsuario">Senha</label>
-                  <input
-                    type="password"
-                    id="senhaUsuario"
-                    class="form-control"
-                    required
-                  />
+            
+            <form id="form-novo-usuario">
+                <div class="form-group form-group-inline">
+                    <div style="flex: 2;">
+                        <label for="nome">Nome Completo</label>
+                        <input type="text" id="nome" class="form-control" required placeholder="Ex: João da Silva">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="perfil">Perfil</label>
+                        <select id="perfil" class="form-control" required>
+                            <option value="usuario">Usuário Padrão</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                  <label for="perfilUsuario">Perfil</label>
-                  <select id="perfilUsuario" class="form-control" required>
-                    <option value="admin">Admin</option>
-                    <option value="usuario">Usuário</option>
-                  </select>
+                <div class="form-group form-group-inline">
+                    <div style="flex: 1;">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" class="form-control" required placeholder="email@exemplo.com">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="senha">Senha</label>
+                        <input type="password" id="senha" class="form-control" required placeholder="Mínimo 6 caracteres" minlength="6">
+                    </div>
                 </div>
-              </div>
+                
+                <div id="feedback-usuario" class="feedback"></div>
 
-              <p class="text-muted mt-2">
-                A senha deve ter no mínimo 6 caracteres. E-mails duplicados não
-                são permitidos.
-              </p>
-
-              <div id="usuario-feedback" class="feedback error mt-2"></div>
-
-              <div class="form-actions">
-                <button type="submit" class="btn" id="btn-salvar-usuario">
-                  Salvar usuário
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  id="btn-limpar-usuario"
-                >
-                  Limpar formulário
-                </button>
-              </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn" id="btn-criar-usuario">Criar Usuário</button>
+                </div>
             </form>
+          </section>
 
-            <hr class="usuarios-divider" />
-
+          <!-- Lista de usuários existentes -->
+          <section class="card">
             <div class="card-header">
               <div>
-                <div class="card-title">Usuários cadastrados</div>
-                <div class="card-subtitle">
-                  Lista de contas com acesso ao sistema.
-                </div>
+                <div class="card-title">Usuários Cadastrados</div>
               </div>
             </div>
-
-            <div id="usuarios-lista-container" class="usuarios-lista">
-              <!-- Tabela de usuários será montada aqui via JavaScript -->
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Perfil</th>
+                    <th>Criado em</th>
+                  </tr>
+                </thead>
+                <tbody id="lista-usuarios">
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">Carregando...</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </section>
         </section>
       </main>
     </div>
 
+    <!-- Scripts do Supabase e Lógica -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
     <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/storage.js"></script>
+    <script src="../assets/js/utils.js"></script>
     <script src="../assets/js/theme.js"></script>
     <script src="./usuarios.js"></script>
   </body>
 </html>
-

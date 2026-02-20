@@ -169,44 +169,22 @@
               </div>
 
               <div>
-                <label for="dataInicio">Data de início</label>
-                <input
-                  type="date"
-                  id="dataInicio"
-                  class="form-control"
-                  required
-                />
-              </div>
-
-              <div>
-                <label for="dataTermino">Data de término</label>
-                <input
-                  type="date"
-                  id="dataTermino"
-                  class="form-control"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="form-group form-group-inline">
-              <div>
                 <label for="esocial">E-Social</label>
                 <select id="esocial" class="form-control" required>
                   <option value="sim">Sim</option>
                   <option value="nao">Não</option>
                 </select>
               </div>
+            </div>
 
-              <div>
-                <label for="medicoCoordenador">Médico coordenador</label>
-                <input
-                  type="text"
-                  id="medicoCoordenador"
-                  class="form-control"
-                  required
-                />
-              </div>
+            <div class="form-group">
+              <label for="medicoCoordenador">Médico coordenador</label>
+              <input
+                type="text"
+                id="medicoCoordenador"
+                class="form-control"
+                required
+              />
             </div>
 
             <div class="form-group">
@@ -224,41 +202,68 @@
               <div>
                 <div class="card-title">Documentos obrigatórios (PDF)</div>
                 <div class="card-subtitle">
-                  É obrigatório anexar os três documentos em formato PDF.
+                  Anexe o arquivo e defina a vigência de cada documento.
                 </div>
               </div>
             </div>
 
-            <div class="form-group form-group-inline">
-              <div>
-                <label for="pcmpdf">PCMSO (PDF)</label>
-                <input
-                  type="file"
-                  id="pcmpdf"
-                  class="form-control"
-                  accept="application/pdf"
-                />
-                <div class="text-muted mt-1" id="pcmpdf-info"></div>
+            <!-- PCMSO -->
+            <div class="doc-section card-nested">
+              <h3 class="doc-title">PCMSO</h3>
+              <div class="form-group form-group-inline">
+                <div style="flex: 2;">
+                  <label for="pcmpdf">Arquivo PDF</label>
+                  <input type="file" id="pcmpdf" class="form-control" accept="application/pdf" />
+                  <div class="text-muted mt-1" id="pcmpdf-info"></div>
+                </div>
+                <div style="flex: 1;">
+                  <label for="pcmso-inicio">Data Início</label>
+                  <input type="date" id="pcmso-inicio" class="form-control" required />
+                </div>
+                <div style="flex: 1;">
+                  <label for="pcmso-termino">Data Término</label>
+                  <input type="date" id="pcmso-termino" class="form-control" required />
+                </div>
               </div>
-              <div>
-                <label for="ltcatpdf">LTCAT (PDF)</label>
-                <input
-                  type="file"
-                  id="ltcatpdf"
-                  class="form-control"
-                  accept="application/pdf"
-                />
-                <div class="text-muted mt-1" id="ltcatpdf-info"></div>
+            </div>
+
+            <!-- LTCAT -->
+            <div class="doc-section card-nested">
+              <h3 class="doc-title">LTCAT</h3>
+              <div class="form-group form-group-inline">
+                <div style="flex: 2;">
+                  <label for="ltcatpdf">Arquivo PDF</label>
+                  <input type="file" id="ltcatpdf" class="form-control" accept="application/pdf" />
+                  <div class="text-muted mt-1" id="ltcatpdf-info"></div>
+                </div>
+                <div style="flex: 1;">
+                  <label for="ltcat-inicio">Data Início</label>
+                  <input type="date" id="ltcat-inicio" class="form-control" required />
+                </div>
+                <div style="flex: 1;">
+                  <label for="ltcat-termino">Data Término</label>
+                  <input type="date" id="ltcat-termino" class="form-control" required />
+                </div>
               </div>
-              <div>
-                <label for="pgrpdf">PGR (PDF)</label>
-                <input
-                  type="file"
-                  id="pgrpdf"
-                  class="form-control"
-                  accept="application/pdf"
-                />
-                <div class="text-muted mt-1" id="pgrpdf-info"></div>
+            </div>
+
+            <!-- PGR -->
+            <div class="doc-section card-nested">
+              <h3 class="doc-title">PGR</h3>
+              <div class="form-group form-group-inline">
+                <div style="flex: 2;">
+                  <label for="pgrpdf">Arquivo PDF</label>
+                  <input type="file" id="pgrpdf" class="form-control" accept="application/pdf" />
+                  <div class="text-muted mt-1" id="pgrpdf-info"></div>
+                </div>
+                <div style="flex: 1;">
+                  <label for="pgr-inicio">Data Início</label>
+                  <input type="date" id="pgr-inicio" class="form-control" required />
+                </div>
+                <div style="flex: 1;">
+                  <label for="pgr-termino">Data Término</label>
+                  <input type="date" id="pgr-termino" class="form-control" required />
+                </div>
               </div>
             </div>
 
@@ -286,6 +291,8 @@
       </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="../assets/js/storage.js"></script>
     <script src="../assets/js/utils.js"></script>

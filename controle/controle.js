@@ -2,14 +2,9 @@
   Controle
   Arquivo: /controle/controle.js
 
-  Responsável por:
-  - Garantir autenticação e exibir dados do usuário na sidebar
-  - Aplicar filtros por período (data inicial/final) usando o campo criadoEm
-  - Calcular indicadores:
-      * Empresas no período
-      * Quantidade de PCMSO, LTCAT, PGR
-      * Quantos documentos ativos
-      * Quantos documentos vencidos
+  MIGRAÇÃO DATAS INDIVIDUAIS:
+  - Contagem agora varre cada documento (PCMSO, LTCAT, PGR).
+  - Verifica status individual de cada um.
 */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -26,27 +21,28 @@ function inicializarControle() {
   const btnFiltro = document.getElementById("btn-aplicar-filtro");
   const btnLimpar = document.getElementById("btn-limpar");
 
-  btnFiltro.addEventListener("click", aplicarFiltro);
+  // Ao clicar em aplicar, executa a busca e filtro
+  btnFiltro.addEventListener("click", () => aplicarFiltro());
+
+  // Limpar campos e reaplicar filtro (busca tudo)
   btnLimpar.addEventListener("click", () => {
     document.getElementById("filtroDataInicio").value = "";
     document.getElementById("filtroDataFim").value = "";
     aplicarFiltro();
   });
 
-  // Ao carregar a página, aplica o filtro "sem datas" (todos)
+  // Carrega dados iniciais
   aplicarFiltro();
 }
 
 /**
- * Lê os campos de data, filtra as empresas e atualiza os indicadores.
+ * Busca todas as empresas e filtra localmente pelas datas selecionadas.
  */
-function aplicarFiltro() {
-  const dataInicio = document.getElementById("filtroDataInicio").value;
-  const dataFim = document.getElementById("filtroDataFim").value;
-
-  // Função definida em storage.js
-  const empresas = filterCompaniesByCreatedAt(dataInicio, dataFim);
-
+async function aplicarFiltro() {
+  const dataInicioInput = document.getElementById("filtroDataInicio").value;
+  const dataFimInput = document.getElementById("filtroDataFim").value;
+  
+  // Elementos de contagem
   const spanEmpresas = document.getElementById("c-empresas");
   const spanPcmso = document.getElementById("c-pcmso");
   const spanLtcat = document.getElementById("c-ltcat");
@@ -54,33 +50,80 @@ function aplicarFiltro() {
   const spanAtivos = document.getElementById("c-ativos");
   const spanVencidos = document.getElementById("c-vencidos");
 
-  spanEmpresas.textContent = String(empresas.length);
+  // Feedback visual de carregamento
+  spanEmpresas.textContent = "...";
+  
+  try {
+    // Busca TODAS as empresas do banco
+    const todasEmpresas = await getCompanies();
 
-  let totalPcmso = 0;
-  let totalLtcat = 0;
-  let totalPgr = 0;
-  let ativos = 0;
-  let vencidos = 0;
+    // Filtra empresas pelo critério de data de cadastro (criadoEm)
+    const empresasFiltradas = todasEmpresas.filter(empresa => {
+      if (!empresa.criadoEm) return false; // Se não tem data de criação, ignora ou inclui? Vamos ignorar.
+      
+      const dataCriacaoSimples = empresa.criadoEm.split('T')[0]; // YYYY-MM-DD
+      
+      if (dataInicioInput && dataCriacaoSimples < dataInicioInput) return false;
+      if (dataFimInput && dataCriacaoSimples > dataFimInput) return false;
 
-  empresas.forEach((empresa) => {
-    const docs = empresa.documentos || {};
+      return true;
+    });
 
-    if (docs.pcmso) totalPcmso += 1;
-    if (docs.ltcat) totalLtcat += 1;
-    if (docs.pgr) totalPgr += 1;
+    // Atualiza contador de empresas
+    spanEmpresas.textContent = String(empresasFiltradas.length);
 
-    const status = calcularStatusPorDataTermino(empresa.dataTermino);
-    if (status.status === "vencido") {
-      vencidos += 1;
-    } else {
-      ativos += 1;
-    }
-  });
+    // Variáveis para contagem de DOCUMENTOS
+    let totalPcmso = 0;
+    let totalLtcat = 0;
+    let totalPgr = 0;
+    
+    let docsAtivos = 0;
+    let docsVencidos = 0;
 
-  spanPcmso.textContent = String(totalPcmso);
-  spanLtcat.textContent = String(totalLtcat);
-  spanPgr.textContent = String(totalPgr);
-  spanAtivos.textContent = String(ativos);
-  spanVencidos.textContent = String(vencidos);
+    const tiposDocs = ["pcmso", "ltcat", "pgr"];
+
+    empresasFiltradas.forEach((empresa) => {
+      const docs = empresa.documentos || {};
+
+      tiposDocs.forEach(tipo => {
+          const doc = docs[tipo];
+          // Só conta se o documento existir (upload feito)
+          if (doc && (doc.dataUrl || doc.nomeArquivo)) {
+              
+              // Incrementa totais por tipo
+              if (tipo === "pcmso") totalPcmso++;
+              if (tipo === "ltcat") totalLtcat++;
+              if (tipo === "pgr") totalPgr++;
+
+              // Verifica status (Vencido vs Ativo)
+              // Usa data do documento, ou fallback para data da empresa
+              const dataFim = doc.dataTermino || empresa.dataTermino;
+              
+              if (dataFim) {
+                  const statusInfo = calcularStatusPorDataTermino(dataFim);
+                  if (statusInfo.status === "vencido") {
+                      docsVencidos++;
+                  } else {
+                      // Aviso ou Em dia contam como "Ativos" (válidos)
+                      docsAtivos++;
+                  }
+              } else {
+                  // Se não tem data, consideramos o quê?
+                  // Vamos considerar ativo mas indefinido.
+                  docsAtivos++;
+              }
+          }
+      });
+    });
+
+    spanPcmso.textContent = String(totalPcmso);
+    spanLtcat.textContent = String(totalLtcat);
+    spanPgr.textContent = String(totalPgr);
+    spanAtivos.textContent = String(docsAtivos);
+    spanVencidos.textContent = String(docsVencidos);
+
+  } catch (err) {
+    console.error("Erro ao aplicar filtro:", err);
+    spanEmpresas.textContent = "Erro";
+  }
 }
-

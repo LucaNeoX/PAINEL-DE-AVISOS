@@ -2,21 +2,9 @@
   Visualizar Empresas
   Arquivo: /visualizar/visualizar.js
 
-  Responsável por:
-  - Garantir autenticação e exibir dados do usuário na sidebar
-  - Listar empresas principais (matrizes) em blocos horizontais
-  - Listar filiais vinculadas logo abaixo de cada matriz
-  - Calcular status de vencimento (cores verde/amarelo/vermelho)
-  - Regras de interação:
-      * Clique único na MATRIZ:
-          - Apenas expande/recolhe a lista de filiais vinculadas
-      * Clique duplo na MATRIZ:
-          - Mostra/oculta os detalhes completos da matriz
-          - Exibe botões para visualizar PDFs e cadastrar nova filial
-      * Clique único na FILIAL:
-          - Mostra/oculta diretamente os detalhes completos da filial
-          - Exibe botões para visualizar PDFs
-  - Abrir modal simples com visualização de PDF em iframe
+  MIGRAÇÃO SUPABASE:
+  - Carregamento assíncrono de empresas
+  - Uso de calcularStatusGeralEmpresa para status consolidado
 */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -33,63 +21,58 @@ document.addEventListener("DOMContentLoaded", function () {
 /**
  * Monta a listagem de empresas principais, com suas filiais vinculadas.
  */
-function montarListaEmpresas(session) {
+async function montarListaEmpresas(session) {
   const container = document.getElementById("lista-empresas");
-  container.innerHTML = "";
+  container.innerHTML = "<p class='text-muted'>Carregando empresas...</p>"; // Feedback de carregamento
 
-  const arvore = getCompanyTree();
+  try {
+    const arvore = await getCompanyTree();
 
-  if (!arvore.length) {
-    const empty = document.createElement("p");
-    empty.className = "text-muted";
-    empty.textContent =
-      "Nenhuma empresa cadastrada ainda. Acesse 'Cadastrar empresa' para iniciar.";
-    container.appendChild(empty);
-    return;
-  }
+    container.innerHTML = ""; // Limpa o feedback de carregamento
 
-  arvore.forEach((grupo) => {
-    const { principal, filiais } = grupo;
-
-    // Wrapper agrupa a matriz e o bloco de filiais logo abaixo.
-    const grupoWrapper = document.createElement("div");
-    grupoWrapper.className = "empresa-grupo";
-
-    // Container que receberá os cards das filiais (inicia recolhido).
-    const filiaisWrapper = document.createElement("div");
-    filiaisWrapper.className = "empresa-filiais-list";
-
-    // Card da empresa principal (matriz)
-    const cardMatriz = criarCardEmpresa(principal, filiais, filiaisWrapper, session);
-
-    // Cards de filiais (um card por filial, levemente recuados)
-    if (filiais && filiais.length) {
-      filiais.forEach((filial) => {
-        const cardFilial = criarCardFilial(filial, session);
-        filiaisWrapper.appendChild(cardFilial);
-      });
+    if (!arvore || !arvore.length) {
+      const empty = document.createElement("p");
+      empty.className = "text-muted";
+      empty.textContent =
+        "Nenhuma empresa cadastrada ainda. Acesse 'Cadastrar empresa' para iniciar.";
+      container.appendChild(empty);
+      return;
     }
 
-    grupoWrapper.appendChild(cardMatriz);
-    grupoWrapper.appendChild(filiaisWrapper);
-    container.appendChild(grupoWrapper);
-  });
+    arvore.forEach((grupo) => {
+      const { principal, filiais } = grupo;
+
+      // Wrapper agrupa a matriz e o bloco de filiais logo abaixo.
+      const grupoWrapper = document.createElement("div");
+      grupoWrapper.className = "empresa-grupo";
+
+      // Container que receberá os cards das filiais (inicia recolhido).
+      const filiaisWrapper = document.createElement("div");
+      filiaisWrapper.className = "empresa-filiais-list";
+
+      // Card da empresa principal (matriz)
+      const cardMatriz = criarCardEmpresa(principal, filiais, filiaisWrapper, session);
+
+      // Cards de filiais (um card por filial, levemente recuados)
+      if (filiais && filiais.length) {
+        filiais.forEach((filial) => {
+          const cardFilial = criarCardFilial(filial, session);
+          filiaisWrapper.appendChild(cardFilial);
+        });
+      }
+
+      grupoWrapper.appendChild(cardMatriz);
+      grupoWrapper.appendChild(filiaisWrapper);
+      container.appendChild(grupoWrapper);
+    });
+  } catch (error) {
+    console.error("Erro ao carregar empresas:", error);
+    container.innerHTML = "<p class='error'>Erro ao carregar empresas. Verifique o console ou sua conexão.</p>";
+  }
 }
 
 /**
  * Cria o bloco visual de uma empresa principal (matriz).
- * - card com:
- *   * Nome
- *   * Status com cor
- *   * Sub-informações
- *   * Detalhes expansíveis (dados + botões para PDFs)
- *   * Botão para cadastrar filial
- *
- * Regras de clique:
- *   - Clique simples:
- *       Mostra/oculta a lista de filiais logo abaixo (filiaisWrapper)
- *   - Duplo clique:
- *       Mostra/oculta os detalhes da própria matriz (dados + PDFs)
  */
 function criarCardEmpresa(empresa, filiais, filiaisWrapper, session) {
   const card = document.createElement("article");
@@ -106,12 +89,16 @@ function criarCardEmpresa(empresa, filiais, filiaisWrapper, session) {
 
   const subinfo = document.createElement("div");
   subinfo.className = "empresa-subinfo";
-  subinfo.textContent = `CNPJ: ${empresa.cnpj} · Início: ${formatDateToBR(empresa.dataInicio)} · Término: ${formatDateToBR(empresa.dataTermino)}`;
+  // DataInício/Término aqui pode ser confuso pois é por doc.
+  // Vamos mostrar apenas CNPJ e Status Geral.
+  subinfo.textContent = `CNPJ: ${empresa.cnpj}`;
 
   info.appendChild(nome);
   info.appendChild(subinfo);
 
-  const statusInfo = calcularStatusPorDataTermino(empresa.dataTermino);
+  // Status Geral da Empresa (pior caso entre os documentos)
+  const statusInfo = calcularStatusGeralEmpresa(empresa);
+  
   const badge = document.createElement("div");
   badge.className = `badge ${statusInfo.cssClass}`;
 
@@ -196,49 +183,19 @@ function criarCardEmpresa(empresa, filiais, filiaisWrapper, session) {
   detalhes.appendChild(linha2);
   detalhes.appendChild(linha3);
 
-  const docButtons = document.createElement("div");
-  docButtons.className = "empresa-doc-buttons";
-
-  const docs = empresa.documentos || {};
-  ["pcmso", "ltcat", "pgr"].forEach((tipo) => {
-    const doc = docs[tipo];
-    if (!doc) return;
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "btn btn-secondary";
-    btn.textContent = `${tipo.toUpperCase()} (${doc.nomeArquivo || "PDF"})`;
-
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      abrirModalPdf(
-        empresa.nome,
-        tipo.toUpperCase(),
-        doc.dataUrl,
-        doc.nomeArquivo
-      );
-    });
-
-    docButtons.appendChild(btn);
-  });
-
+  // Botões de Documentos com Status Individual
+  const docButtons = criarBotoesDocumentos(empresa, session);
   detalhes.appendChild(docButtons);
 
   card.appendChild(header);
   card.appendChild(actions);
   card.appendChild(detalhes);
 
-  /*
-    Lógica de cliques na MATRIZ:
-
-    - Usamos um pequeno timer para diferenciar entre clique simples e duplo clique.
-      * 1 clique => apenas expande/recolhe as filiais vinculadas.
-      * 2 cliques rápidos => expande/recolhe os detalhes da própria matriz.
-  */
+  /* Lógica de clique (Simples vs Duplo) */
   let clickTimeout = null;
 
   card.addEventListener("click", function (e) {
-    // Atalho: ALT + clique abre edição diretamente para administradores.
+    // Atalho: ALT + clique abre edição
     if (e.altKey && session.perfil === "admin") {
       const params = new URLSearchParams({ id: empresa.id });
       window.location.href = "../cadastro/index.html?" + params.toString();
@@ -246,24 +203,14 @@ function criarCardEmpresa(empresa, filiais, filiaisWrapper, session) {
     }
 
     if (clickTimeout) {
-      // Segundo clique dentro do intervalo: tratamos como duplo clique.
       clearTimeout(clickTimeout);
       clickTimeout = null;
-
-      // Duplo clique na MATRIZ:
-      // - Mostra/oculta detalhes completos da matriz (dados + PDFs)
-      // - Exibe também o botão "Cadastrar filial"
       card.classList.toggle("expandida");
       card.classList.toggle("mostra-filial");
     } else {
-      // Primeiro clique → aguardamos um curto intervalo para saber se virá o segundo.
       clickTimeout = setTimeout(function () {
         clickTimeout = null;
-
-        // Clique simples na MATRIZ:
-        // - Mostra/oculta a lista de filiais vinculadas (sem mexer nos detalhes da matriz).
         if (!filiais || !filiais.length || !filiaisWrapper) return;
-
         const aberta = filiaisWrapper.classList.contains("aberta");
         if (aberta) {
           filiaisWrapper.classList.remove("aberta");
@@ -279,13 +226,6 @@ function criarCardEmpresa(empresa, filiais, filiaisWrapper, session) {
 
 /**
  * Cria o card visual de uma FILIAL.
- * - Visualmente é um card semelhante ao da matriz, mas levemente recuado
- *   (controlado por CSS) para indicar hierarquia.
- *
- * Regra de clique:
- *  - Clique simples na FILIAL:
- *      Mostra/oculta diretamente os detalhes completos da filial
- *      (dados + botões para PDFs).
  */
 function criarCardFilial(empresa, session) {
   const card = document.createElement("article");
@@ -302,12 +242,14 @@ function criarCardFilial(empresa, session) {
 
   const subinfo = document.createElement("div");
   subinfo.className = "empresa-subinfo";
-  subinfo.textContent = `Filial · CNPJ: ${empresa.cnpj} · Início: ${formatDateToBR(empresa.dataInicio)} · Término: ${formatDateToBR(empresa.dataTermino)}`;
+  subinfo.textContent = `Filial · CNPJ: ${empresa.cnpj}`;
 
   info.appendChild(nome);
   info.appendChild(subinfo);
 
-  const statusInfo = calcularStatusPorDataTermino(empresa.dataTermino);
+  // Status Geral (Pior caso)
+  const statusInfo = calcularStatusGeralEmpresa(empresa);
+  
   const badge = document.createElement("div");
   badge.className = `badge ${statusInfo.cssClass}`;
 
@@ -341,32 +283,8 @@ function criarCardFilial(empresa, session) {
   detalhes.appendChild(linha2);
   detalhes.appendChild(linha3);
 
-  const docButtons = document.createElement("div");
-  docButtons.className = "empresa-doc-buttons";
-
-  const docs = empresa.documentos || {};
-  ["pcmso", "ltcat", "pgr"].forEach((tipo) => {
-    const doc = docs[tipo];
-    if (!doc) return;
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "btn btn-secondary";
-    btn.textContent = `${tipo.toUpperCase()} (${doc.nomeArquivo || "PDF"})`;
-
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      abrirModalPdf(
-        empresa.nome,
-        tipo.toUpperCase(),
-        doc.dataUrl,
-        doc.nomeArquivo
-      );
-    });
-
-    docButtons.appendChild(btn);
-  });
-
+  // Botões de Documentos
+  const docButtons = criarBotoesDocumentos(empresa, session);
   detalhes.appendChild(docButtons);
 
   card.appendChild(header);
@@ -406,17 +324,128 @@ function criarCardFilial(empresa, session) {
 
   // Clique simples na FILIAL: mostra/oculta detalhes completos.
   card.addEventListener("click", function (e) {
-    // Atalho: ALT + clique abre edição diretamente para administradores.
     if (e.altKey && session.perfil === "admin") {
       const params = new URLSearchParams({ id: empresa.id });
       window.location.href = "../cadastro/index.html?" + params.toString();
       return;
     }
-
     card.classList.toggle("expandida");
   });
 
   return card;
+}
+
+/**
+ * Função auxiliar para criar os botões de documentos (reusada em Matriz e Filial).
+ */
+function criarBotoesDocumentos(empresa, session) {
+  const docButtons = document.createElement("div");
+  docButtons.className = "empresa-doc-buttons";
+  docButtons.style.display = "flex";
+  docButtons.style.flexWrap = "wrap";
+  docButtons.style.gap = "8px";
+
+  const docs = empresa.documentos || {};
+  
+  ["pcmso", "ltcat", "pgr"].forEach((tipo) => {
+    const doc = docs[tipo];
+    
+    // Grupo de botões
+    const docGroup = document.createElement("div");
+    docGroup.className = "btn-group";
+    docGroup.style.display = "inline-flex";
+    docGroup.style.alignItems = "center";
+    
+    if (doc) {
+        // Calcula status individual deste documento
+        const dataFim = doc.dataTermino || empresa.dataTermino; // Fallback
+        const statusDoc = calcularStatusPorDataTermino(dataFim);
+        
+        // Define cor do texto/icone baseada no status
+        let statusColor = ""; // Padrão
+        if (statusDoc.status === "vencido") statusColor = "#e74c3c"; // Vermelho
+        else if (statusDoc.status === "aviso") statusColor = "#f1c40f"; // Amarelo
+        
+        // 1. Botão de Visualizar
+        const btnView = document.createElement("button");
+        btnView.type = "button";
+        btnView.className = "btn btn-secondary";
+        
+        // Mostra data de vencimento no tooltip
+        const validadeTexto = dataFim ? `Vence em: ${formatDateToBR(dataFim)}` : "Sem data";
+        btnView.title = `${doc.nomeArquivo || "PDF"} (${validadeTexto})`;
+        
+        // Texto do botão
+        btnView.innerHTML = `<span style="color:${statusColor}">${tipo.toUpperCase()}</span>`;
+        
+        // Se for admin, remove bordas direitas
+        if (session.perfil === "admin") {
+            btnView.style.borderTopRightRadius = "0";
+            btnView.style.borderBottomRightRadius = "0";
+            btnView.style.borderRight = "1px solid rgba(255,255,255,0.2)";
+        }
+
+        btnView.addEventListener("click", function (e) {
+          e.stopPropagation();
+          abrirModalPdf(empresa.nome, tipo.toUpperCase(), doc.dataUrl, doc.nomeArquivo);
+        });
+        docGroup.appendChild(btnView);
+
+        // 2. Botão de Excluir (Apenas Admin)
+        if (session.perfil === "admin") {
+            const btnDel = document.createElement("button");
+            btnDel.type = "button";
+            btnDel.className = "btn btn-danger";
+            btnDel.textContent = "🗑";
+            btnDel.title = "Excluir documento";
+            
+            btnDel.style.borderTopLeftRadius = "0";
+            btnDel.style.borderBottomLeftRadius = "0";
+            btnDel.style.paddingLeft = "8px";
+            btnDel.style.paddingRight = "8px";
+
+            btnDel.addEventListener("click", async function (e) {
+                e.stopPropagation();
+                if (!confirm(`Deseja realmente excluir o documento ${tipo.toUpperCase()}?`)) return;
+
+                const novosDocs = { ...empresa.documentos };
+                delete novosDocs[tipo];
+
+                const resultado = await updateCompany(empresa.id, { documentos: novosDocs });
+                if (resultado) {
+                    montarListaEmpresas(session);
+                } else {
+                    alert("Erro ao excluir documento.");
+                }
+            });
+            docGroup.appendChild(btnDel);
+        }
+    } else {
+        // 3. Botão de Adicionar (Apenas Admin)
+        if (session.perfil === "admin") {
+            const btnAdd = document.createElement("button");
+            btnAdd.type = "button";
+            btnAdd.className = "btn";
+            btnAdd.style.border = "1px dashed currentColor";
+            btnAdd.style.opacity = "0.7";
+            btnAdd.textContent = `+ ${tipo.toUpperCase()}`;
+            btnAdd.title = "Adicionar documento faltando";
+            
+            btnAdd.addEventListener("click", function(e) {
+                e.stopPropagation();
+                const params = new URLSearchParams({ id: empresa.id });
+                window.location.href = `../cadastro/index.html?${params.toString()}`;
+            });
+            docGroup.appendChild(btnAdd);
+        }
+    }
+    
+    if (docGroup.children.length > 0) {
+        docButtons.appendChild(docGroup);
+    }
+  });
+  
+  return docButtons;
 }
 
 /**
@@ -461,4 +490,3 @@ function fecharModalPdf() {
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
 }
-

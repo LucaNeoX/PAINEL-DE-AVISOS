@@ -2,69 +2,64 @@
   Dashboard
   Arquivo: /dashboard/dashboard.js
 
-  Responsável por:
-  - Garantir que o usuário esteja autenticado
-  - Preencher o cabeçalho com os dados do usuário
-  - Calcular:
-      * Quantidade de empresas (matriz + filial)
-      * Quantidade de documentos vencendo
-      * Quantidade de documentos vencidos
-  - Montar a lista de alertas automáticos no card principal
+  MIGRAÇÃO SUPABASE:
+  - Carregamento assíncrono de empresas
+  - Uso de calcularAlertasDocumentos com lista passada por parâmetro
 */
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Garante que existe sessão. Se não existir, faz redirect para o login.
   const session = requireAuth();
   if (!session) return;
 
-  // Preenche informações do usuário na sidebar e botão de logout.
   fillSidebarUserInfo();
   registerLogoutButton();
 
-  // Preenche os contadores principais do topo.
-  preencherContadoresDashboard();
-
-  // Monta a lista de alertas de vencimento.
-  montarListaAlertas();
+  carregarDadosDashboard();
 });
 
-/**
- * Lê as empresas e preenche os contadores:
- * - Total de empresas (matriz + filial)
- * - Total de documentos vencendo
- * - Total de documentos vencidos
- */
-function preencherContadoresDashboard() {
-  const empresas = getCompanies();
+async function carregarDadosDashboard() {
   const spanEmpresas = document.getElementById("count-empresas");
   const spanVencendo = document.getElementById("count-vencendo");
   const spanVencidos = document.getElementById("count-vencidos");
+  const alertasContainer = document.getElementById("lista-alertas");
 
-  spanEmpresas.textContent = String(empresas.length);
+  // Feedback de carregamento
+  spanEmpresas.textContent = "...";
+  spanVencendo.textContent = "...";
+  spanVencidos.textContent = "...";
+  alertasContainer.innerHTML = "<p class='text-muted'>Verificando alertas...</p>";
 
-  const { contadores } = calcularAlertasDocumentos();
+  try {
+    const empresas = await getCompanies();
 
-  spanVencendo.textContent = String(contadores.vencendo);
-  spanVencidos.textContent = String(contadores.vencidos);
+    // 1. Atualiza contador de empresas
+    spanEmpresas.textContent = String(empresas.length);
+
+    // 2. Calcula alertas e contadores de documentos
+    // Agora passamos a lista de empresas explicitamente
+    const { alerts, contadores } = calcularAlertasDocumentos(empresas);
+
+    spanVencendo.textContent = String(contadores.vencendo);
+    spanVencidos.textContent = String(contadores.vencidos);
+
+    // 3. Monta a lista visual de alertas
+    montarListaAlertas(alerts);
+
+  } catch (err) {
+    console.error("Erro ao carregar dashboard:", err);
+    spanEmpresas.textContent = "Erro";
+    alertasContainer.innerHTML = "<p class='error'>Erro ao carregar dados.</p>";
+  }
 }
 
 /**
- * Monta os alertas de vencimento dentro do card "Alertas de vencimento".
- * - A função calcularAlertasDocumentos() retorna apenas o que realmente
- *   deve ser exibido hoje (considerando a frequência ~2x por semana).
- * - Cada alerta mostra:
- *    * Nome da empresa
- *    * Tipo do documento (PCMSO / LTCAT / PGR)
- *    * Badge com status (em aviso ou vencido)
- *    * Informação de dias restantes
+ * Renderiza a lista de alertas calculados.
  */
-function montarListaAlertas() {
+function montarListaAlertas(alerts) {
   const container = document.getElementById("lista-alertas");
   container.innerHTML = "";
 
-  const { alerts } = calcularAlertasDocumentos();
-
-  if (!alerts.length) {
+  if (!alerts || !alerts.length) {
     const empty = document.createElement("div");
     empty.className = "alert-empty";
     empty.textContent = "Nenhum alerta pendente no momento.";
@@ -127,9 +122,7 @@ function montarListaAlertas() {
 
     container.appendChild(item);
 
-    // Registra que este alerta foi exibido hoje,
-    // para controlar a frequência de exibição (~2x por semana).
+    // Registra exibição para controle de frequência
     registerAlertForDoc(alert.docKey);
   });
 }
-

@@ -1,52 +1,55 @@
-/*
-  Tela de Login
-  Arquivo: /login/login.js
-
-  Responsável por:
-  - Capturar o envio do formulário de login
-  - Utilizar a função login(email, senha) do módulo auth.js
-  - Exibir mensagens de erro/sucesso para o usuário
-  - Redirecionar para o dashboard quando o login for válido
-*/
-
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("login-form");
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
-  const feedbackEl = document.getElementById("login-feedback");
-
-  // Se já existir sessão, pula direto para o dashboard.
-  const existingSession = getCurrentSession();
-  if (existingSession) {
-    window.location.href = "../dashboard/index.html";
-    return;
+  // Verifica se o cliente Supabase está carregado
+  if (typeof supabase === "undefined") {
+    console.error("Supabase não carregado! Verifique a conexão com a internet.");
   }
 
-  if (!form) return;
+  const form = document.getElementById("login-form");
+  const feedback = document.getElementById("login-feedback");
 
-  form.addEventListener("submit", function (event) {
+  form.addEventListener("submit", async function (event) {
     event.preventDefault();
+    feedback.textContent = "";
+    feedback.classList.remove("success", "error");
 
-    feedbackEl.textContent = "";
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const btnSubmit = form.querySelector("button[type='submit']");
 
     const email = emailInput.value.trim();
-    const senha = passwordInput.value.trim();
+    const password = passwordInput.value;
 
-    if (!email || !senha) {
-      feedbackEl.textContent = "Informe o e-mail e a senha.";
+    if (!email || !password) {
+      feedback.textContent = "Por favor, preencha todos os campos.";
+      feedback.classList.add("error");
       return;
     }
 
-    // Função login() vem do módulo auth.js
-    const result = login(email, senha);
+    // Feedback visual de carregamento
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Autenticando...";
 
-    if (!result.ok) {
-      feedbackEl.textContent = result.message || "Falha ao autenticar.";
-      return;
+    try {
+      const result = await login(email, password);
+
+      if (result.ok) {
+        feedback.textContent = "Login realizado com sucesso! Redirecionando...";
+        feedback.classList.add("success");
+        
+        // Pequeno delay para feedback visual
+        setTimeout(() => {
+          window.location.href = "../dashboard/index.html"; // Redireciona para o dashboard
+        }, 1000);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error("Erro de login:", error);
+      feedback.textContent = error.message || "Erro ao conectar com o servidor.";
+      feedback.classList.add("error");
+      
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "Acessar sistema";
     }
-
-    // Login bem-sucedido: direciona para o dashboard
-    window.location.href = "../dashboard/index.html";
   });
 });
-

@@ -1,34 +1,21 @@
-/*
-  Cadastro de Empresa / Filial
-  Arquivo: /cadastro/cadastro.js
-
-  Responsável por:
-  - Verificar autenticação e perfil do usuário
-  - Detectar se é cadastro de matriz ou filial (via query string)
-  - Carregar dados de empresa para edição (apenas admin)
-  - Validar campos e anexos (3 PDFs obrigatórios)
-  - Converter PDFs para Base64 (data URL) e salvar no LocalStorage
-*/
-
 document.addEventListener("DOMContentLoaded", function () {
+  // Verifica autenticação
   const session = requireAuth();
   if (!session) return;
 
+  // Carrega informações da sidebar
   fillSidebarUserInfo();
   registerLogoutButton();
 
+  // Inicializa tela
   inicializarTelaCadastro(session);
 
-  // Restringe o campo de CNPJ para aceitar apenas números e no máximo 14 dígitos.
+  // Validação de CNPJ
   const cnpjInput = document.getElementById("cnpj");
   if (cnpjInput) {
     cnpjInput.addEventListener("input", function () {
-      // Remove tudo que não for dígito
       let value = this.value.replace(/\D/g, "");
-      // Limita a 14 caracteres
-      if (value.length > 14) {
-        value = value.slice(0, 14);
-      }
+      if (value.length > 14) value = value.slice(0, 14);
       this.value = value;
     });
   }
@@ -36,10 +23,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 /**
  * Lê parâmetros da URL para entender o contexto:
- *  - id: quando presente, indica edição de empresa existente.
- *  - tipo: "principal" (padrão) ou "filial".
- *  - parentId: usado quando estamos cadastrando uma filial.
- *  - parentName: nome da empresa principal (apenas para exibir no título).
  */
 function obterParametrosURL() {
   const params = new URLSearchParams(window.location.search);
@@ -52,10 +35,7 @@ function obterParametrosURL() {
 }
 
 /**
- * Configura a interface de acordo com:
- *  - Cadastro de matriz
- *  - Cadastro de filial
- *  - Edição de registro existente
+ * Configura a interface de acordo com o contexto.
  */
 function inicializarTelaCadastro(session) {
   const { id, tipo, parentCompanyId, parentName } = obterParametrosURL();
@@ -66,13 +46,10 @@ function inicializarTelaCadastro(session) {
 
   const titulo = document.getElementById("cadastro-titulo");
   const subtitulo = document.getElementById("cadastro-subtitulo");
-
   const btnVoltar = document.getElementById("btn-voltar");
 
   inputTipo.value = tipo === "filial" ? "filial" : "principal";
-  if (parentCompanyId) {
-    inputParent.value = parentCompanyId;
-  }
+  if (parentCompanyId) inputParent.value = parentCompanyId;
 
   if (tipo === "filial") {
     titulo.textContent = "Cadastrar filial";
@@ -83,12 +60,10 @@ function inicializarTelaCadastro(session) {
     titulo.textContent = id ? "Editar empresa" : "Cadastrar empresa";
   }
 
-  // Botão voltar sempre leva à tela de visualização
   btnVoltar.addEventListener("click", function () {
     window.location.href = "../visualizar/index.html";
   });
 
-  // Se for edição (id presente), carregamos os dados
   if (id) {
     inputId.value = id;
     carregarEmpresaParaEdicao(id, session);
@@ -98,167 +73,263 @@ function inicializarTelaCadastro(session) {
 }
 
 /**
- * Preenche o formulário com os dados de uma empresa/filial existente.
- * - Se o usuário logado NÃO for admin, o formulário fica somente leitura.
+ * Carrega dados para edição.
  */
-function carregarEmpresaParaEdicao(id, session) {
-  const empresa = getCompanyById(id);
-  if (!empresa) return;
-
-  const inputTipo = document.getElementById("tipo");
-  const inputParent = document.getElementById("parentCompanyId");
-
-  document.getElementById("nomeEmpresa").value = empresa.nome || "";
-  document.getElementById("cnpj").value = empresa.cnpj || "";
-  document.getElementById("statusEmpresa").value =
-    empresa.statusEmpresa || "Ativa";
-  document.getElementById("dataInicio").value = empresa.dataInicio || "";
-  document.getElementById("dataTermino").value = empresa.dataTermino || "";
-  document.getElementById("esocial").value = empresa.esocial ? "sim" : "nao";
-  document.getElementById("medicoCoordenador").value =
-    empresa.medicoCoordenador || "";
-  document.getElementById("observacoes").value = empresa.observacoes || "";
-
-  inputTipo.value = empresa.tipo || "principal";
-  inputParent.value = empresa.parentCompanyId || "";
-
-  // Informações sobre os arquivos já existentes (não reexibimos o PDF em si)
-  if (empresa.documentos) {
-    if (empresa.documentos.pcmso) {
-      document.getElementById("pcmpdf-info").textContent =
-        "Arquivo já anexado: " + empresa.documentos.pcmso.nomeArquivo;
+async function carregarEmpresaParaEdicao(id, session) {
+  try {
+    const empresa = await getCompanyById(id);
+    if (!empresa) {
+      alert("Empresa não encontrada.");
+      window.location.href = "../visualizar/index.html";
+      return;
     }
-    if (empresa.documentos.ltcat) {
-      document.getElementById("ltcatpdf-info").textContent =
-        "Arquivo já anexado: " + empresa.documentos.ltcat.nomeArquivo;
-    }
-    if (empresa.documentos.pgr) {
-      document.getElementById("pgrpdf-info").textContent =
-        "Arquivo já anexado: " + empresa.documentos.pgr.nomeArquivo;
-    }
-  }
 
-  // Regra de permissão: apenas admin pode editar dados já cadastrados
-  if (session.perfil !== "admin") {
-    deixarFormularioSomenteLeitura();
+    // Preenche formulário básico
+    document.getElementById("nomeEmpresa").value = empresa.nome || "";
+    document.getElementById("cnpj").value = empresa.cnpj || "";
+    document.getElementById("statusEmpresa").value = empresa.statusEmpresa || "Ativa";
+    document.getElementById("esocial").value = empresa.esocial ? "sim" : "nao";
+    document.getElementById("medicoCoordenador").value = empresa.medicoCoordenador || "";
+    document.getElementById("observacoes").value = empresa.observacoes || "";
+
+    document.getElementById("tipo").value = empresa.tipo || "principal";
+    document.getElementById("parentCompanyId").value = empresa.parentCompanyId || "";
+
+    // Informações sobre arquivos já existentes e DATAS individuais
+    let docs = empresa.documentos || {};
+    if (typeof docs === 'string') {
+        try { docs = JSON.parse(docs); } catch(e) {}
+    }
+    
+    // Função auxiliar para preencher arquivo e datas
+    const fillDoc = (tipo, prefixo) => {
+        const docObj = docs[tipo];
+        const elInfo = document.getElementById(`${prefixo}pdf-info`);
+        
+        // Datas: usa a data específica do documento. 
+        // Se não existir, tenta usar a data global antiga da empresa como fallback.
+        const dataInicio = docObj?.dataInicio || empresa.dataInicio || "";
+        const dataTermino = docObj?.dataTermino || empresa.dataTermino || "";
+
+        document.getElementById(`${prefixo}-inicio`).value = dataInicio;
+        document.getElementById(`${prefixo}-termino`).value = dataTermino;
+
+        if (docObj && docObj.nomeArquivo) {
+            elInfo.innerHTML = `<span style="color: green; font-weight: bold;">✓ Arquivo atual: ${docObj.nomeArquivo}</span>`;
+        } else {
+            elInfo.textContent = "";
+        }
+    };
+
+    fillDoc("pcmso", "pcm"); // prefixo no HTML é 'pcmpdf' -> mas inputs de data são 'pcmso-inicio'
+    // Ajuste: no HTML criei 'pcmso-inicio', mas input file é 'pcmpdf'. 
+    // Vou ajustar a chamada para bater com os IDs criados no HTML.
+
+    // PCMSO
+    const pcmDoc = docs.pcmso;
+    document.getElementById("pcmso-inicio").value = pcmDoc?.dataInicio || empresa.dataInicio || "";
+    document.getElementById("pcmso-termino").value = pcmDoc?.dataTermino || empresa.dataTermino || "";
+    if (pcmDoc?.nomeArquivo) document.getElementById("pcmpdf-info").innerHTML = `<b>✓ ${pcmDoc.nomeArquivo}</b>`;
+
+    // LTCAT
+    const ltcatDoc = docs.ltcat;
+    document.getElementById("ltcat-inicio").value = ltcatDoc?.dataInicio || empresa.dataInicio || "";
+    document.getElementById("ltcat-termino").value = ltcatDoc?.dataTermino || empresa.dataTermino || "";
+    if (ltcatDoc?.nomeArquivo) document.getElementById("ltcatpdf-info").innerHTML = `<b>✓ ${ltcatDoc.nomeArquivo}</b>`;
+
+    // PGR
+    const pgrDoc = docs.pgr;
+    document.getElementById("pgr-inicio").value = pgrDoc?.dataInicio || empresa.dataInicio || "";
+    document.getElementById("pgr-termino").value = pgrDoc?.dataTermino || empresa.dataTermino || "";
+    if (pgrDoc?.nomeArquivo) document.getElementById("pgrpdf-info").innerHTML = `<b>✓ ${pgrDoc.nomeArquivo}</b>`;
+
+  } catch (err) {
+    console.error("Erro ao carregar edição:", err);
   }
 }
 
 /**
- * Deixa todos os campos do formulário em modo somente leitura
- * (usado quando um usuário comum tenta editar um cadastro existente).
+ * Envia arquivo para o Supabase Storage.
+ * Retorna a URL pública.
  */
-function deixarFormularioSomenteLeitura() {
-  const form = document.getElementById("empresa-form");
-  const feedback = document.getElementById("empresa-feedback");
+async function uploadFileToStorage(file, empresaNome, tipoDoc) {
+  if (!file) return null;
 
-  Array.from(form.elements).forEach((el) => {
-    if (
-      el.tagName === "INPUT" ||
-      el.tagName === "SELECT" ||
-      el.tagName === "TEXTAREA"
-    ) {
-      el.disabled = true;
-    }
-  });
+  // Sanitiza nome do arquivo
+  const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+  const path = `${empresaNome.replace(/[^a-zA-Z0-9]/g, "_")}/${tipoDoc.toLowerCase()}_${Date.now()}_${safeName}`;
 
-  const btnSalvar = document.getElementById("btn-salvar");
-  btnSalvar.disabled = true;
+  const { data, error } = await supabase.storage
+    .from('documentos')
+    .upload(path, file);
 
-  feedback.textContent =
-    "Você está visualizando um cadastro existente. Apenas administradores podem editar.";
+  if (error) {
+    console.error("Erro no upload:", error);
+    return null;
+  }
+
+  // Pega URL pública
+  const { data: urlData } = supabase.storage
+    .from('documentos')
+    .getPublicUrl(path);
+
+  return urlData.publicUrl;
 }
 
 /**
- * Registra o comportamento do envio de formulário.
- * - Usuários comuns podem cadastrar novos registros (sem ID).
- * - Apenas admins podem editar (com ID preenchido).
+ * Registra o envio do formulário.
  */
 function registrarEnvioFormulario(session) {
   const form = document.getElementById("empresa-form");
   const feedback = document.getElementById("empresa-feedback");
 
-  form.addEventListener("submit", function (event) {
+  form.addEventListener("submit", async function (event) {
     event.preventDefault();
     feedback.textContent = "";
+    feedback.classList.remove("success", "error");
+
+    const btnSalvar = document.getElementById("btn-salvar");
+    btnSalvar.disabled = true;
+    btnSalvar.textContent = "Salvando...";
 
     const idExistente = document.getElementById("empresa-id").value || null;
     const tipo = document.getElementById("tipo").value || "principal";
-    const parentCompanyId =
-      document.getElementById("parentCompanyId").value || null;
-
-    if (idExistente && session.perfil !== "admin") {
-      feedback.textContent =
-        "Apenas administradores podem editar cadastros existentes.";
-      return;
-    }
+    const parentCompanyId = document.getElementById("parentCompanyId").value || null;
 
     const nome = document.getElementById("nomeEmpresa").value.trim();
     const cnpj = document.getElementById("cnpj").value.trim();
-    const statusEmpresa =
-      document.getElementById("statusEmpresa").value || "Ativa";
-    const dataInicio = document.getElementById("dataInicio").value;
-    const dataTermino = document.getElementById("dataTermino").value;
+    const statusEmpresa = document.getElementById("statusEmpresa").value;
     const esocialValue = document.getElementById("esocial").value;
-    const medicoCoordenador = document
-      .getElementById("medicoCoordenador")
-      .value.trim();
-    const observacoes =
-      document.getElementById("observacoes").value.trim() || "";
+    const medicoCoordenador = document.getElementById("medicoCoordenador").value.trim();
+    const observacoes = document.getElementById("observacoes").value.trim();
 
-    // Referências aos campos de arquivo e informações
+    // Captura datas individuais
+    const pcmInicio = document.getElementById("pcmso-inicio").value;
+    const pcmTermino = document.getElementById("pcmso-termino").value;
+    
+    const ltcatInicio = document.getElementById("ltcat-inicio").value;
+    const ltcatTermino = document.getElementById("ltcat-termino").value;
+    
+    const pgrInicio = document.getElementById("pgr-inicio").value;
+    const pgrTermino = document.getElementById("pgr-termino").value;
+
+    // Validações básicas (apenas campos obrigatórios globais)
+    if (!nome || !cnpj || !medicoCoordenador) {
+      feedback.textContent = "Preencha os campos de identificação da empresa.";
+      feedback.classList.add("error");
+      btnSalvar.disabled = false;
+      return;
+    }
+
+    if (!/^\d{14}$/.test(cnpj)) {
+      feedback.textContent = "CNPJ inválido (deve conter 14 dígitos).";
+      feedback.classList.add("error");
+      btnSalvar.disabled = false;
+      return;
+    }
+
+    // Processamento de arquivos
     const pcmsInput = document.getElementById("pcmpdf");
     const ltcatInput = document.getElementById("ltcatpdf");
     const pgrInput = document.getElementById("pgrpdf");
 
-    if (!nome || !cnpj || !dataInicio || !dataTermino || !medicoCoordenador) {
-      feedback.textContent =
-        "Preencha todos os campos obrigatórios do formulário.";
-      return;
-    }
-
-    // Validação específica do CNPJ: exatamente 14 dígitos numéricos.
-    if (!/^\d{14}$/.test(cnpj)) {
-      feedback.textContent = "O CNPJ deve conter exatamente 14 números.";
-      return;
-    }
-
-    // Validação do tipo de arquivo: apenas PDF
     const arquivos = {
       pcmso: pcmsInput.files[0] || null,
       ltcat: ltcatInput.files[0] || null,
       pgr: pgrInput.files[0] || null,
     };
 
-    const empresaExistente = idExistente ? getCompanyById(idExistente) : null;
+    let empresaExistente = null;
+    if (idExistente) {
+      empresaExistente = await getCompanyById(idExistente);
+    }
 
-    // Usuário pode estar editando e já ter PDFs salvos anteriormente.
-    // Regra: "Não permitir cadastro sem os 3 arquivos".
-    // Interpretação: na criação, os 3 devem ser anexados;
-    // na edição, o registro pode reaproveitar os arquivos já existentes,
-    // sem obrigar o usuário a reenviá-los.
-    const precisaValidarTodosArquivos = !empresaExistente;
+    // Regra: "Não permitir cadastro sem os 3 arquivos" (apenas se for nova empresa)
+    // Se for edição, pode salvar sem re-enviar arquivo, DESDE QUE as datas estejam preenchidas.
+    
+    // Validação de datas: Para cada documento que EXISTE (novo ou antigo), as datas são obrigatórias.
+    // Como saber se existe? Se tem arquivo novo OU se já existia no banco.
 
-    if (precisaValidarTodosArquivos) {
+    const checkDocExists = (tipo, fileInput) => {
+        if (fileInput) return true; // Está enviando agora
+        if (empresaExistente && empresaExistente.documentos && empresaExistente.documentos[tipo]) return true; // Já tinha
+        return false;
+    };
+
+    // Valida datas apenas para documentos que vão existir
+    if (checkDocExists("pcmso", arquivos.pcmso)) {
+        if (!pcmInicio || !pcmTermino) {
+            feedback.textContent = "Preencha as datas de vigência do PCMSO.";
+            feedback.classList.add("error");
+            btnSalvar.disabled = false;
+            return;
+        }
+    }
+    if (checkDocExists("ltcat", arquivos.ltcat)) {
+        if (!ltcatInicio || !ltcatTermino) {
+            feedback.textContent = "Preencha as datas de vigência do LTCAT.";
+            feedback.classList.add("error");
+            btnSalvar.disabled = false;
+            return;
+        }
+    }
+    if (checkDocExists("pgr", arquivos.pgr)) {
+        if (!pgrInicio || !pgrTermino) {
+            feedback.textContent = "Preencha as datas de vigência do PGR.";
+            feedback.classList.add("error");
+            btnSalvar.disabled = false;
+            return;
+        }
+    }
+    
+    // Se for nova empresa, continua exigindo os 3 arquivos
+    if (!idExistente) {
       if (!arquivos.pcmso || !arquivos.ltcat || !arquivos.pgr) {
-        feedback.textContent =
-          "Para cadastrar, é obrigatório anexar os três PDFs: PCMSO, LTCAT e PGR.";
+        feedback.textContent = "Para cadastrar, anexe os três PDFs obrigatórios.";
+        feedback.classList.add("error");
+        btnSalvar.disabled = false;
         return;
       }
     }
 
-    // Verificação de que os arquivos selecionados são PDFs
-    for (const [tipoDoc, file] of Object.entries(arquivos)) {
-      if (file && file.type !== "application/pdf") {
-        feedback.textContent = `O arquivo selecionado para ${tipoDoc.toUpperCase()} não é um PDF válido.`;
-        return;
-      }
-    }
+    // Processar upload de arquivos e salvar dados
+    const documentosFinais = empresaExistente?.documentos || {};
 
-    // Função auxiliar para seguir com o salvamento depois que
-    // os arquivos forem convertidos para Base64.
-    const salvarComDocumentos = (documentos) => {
-      const anoBase = dataInicio ? dataInicio.slice(0, 4) : null;
+    try {
+      // Função helper para montar objeto do documento
+      const updateDocData = async (tipo, file, inicio, termino) => {
+          // Se enviou arquivo novo, faz upload
+          if (file) {
+             const url = await uploadFileToStorage(file, nome, tipo.toUpperCase());
+             documentosFinais[tipo] = {
+                 nomeArquivo: file.name,
+                 dataUploadISO: new Date().toISOString(),
+                 dataUrl: url,
+                 ano: inicio.slice(0, 4),
+                 dataInicio: inicio,
+                 dataTermino: termino
+             };
+          } else if (documentosFinais[tipo]) {
+             // Se não enviou arquivo mas documento existe, atualiza apenas as datas
+             documentosFinais[tipo].dataInicio = inicio;
+             documentosFinais[tipo].dataTermino = termino;
+             documentosFinais[tipo].ano = inicio.slice(0, 4);
+          }
+      };
+
+      await updateDocData("pcmso", arquivos.pcmso, pcmInicio, pcmTermino);
+      await updateDocData("ltcat", arquivos.ltcat, ltcatInicio, ltcatTermino);
+      await updateDocData("pgr", arquivos.pgr, pgrInicio, pgrTermino);
+
+      // Preparar objeto para salvar
+      // Nota: Mantemos dataInicio/dataTermino na raiz da empresa apenas como referência geral (ex: menor dataInicio e maior dataTermino)
+      // ou deixamos vazio se não for mais usado.
+      // Para compatibilidade, vamos salvar a MAIOR data de término como referência de "contrato ativo".
+      
+      const datasTermino = [pcmTermino, ltcatTermino, pgrTermino].filter(d => d).sort();
+      const maiorTermino = datasTermino.length ? datasTermino[datasTermino.length - 1] : null;
+      const datasInicio = [pcmInicio, ltcatInicio, pgrInicio].filter(d => d).sort();
+      const menorInicio = datasInicio.length ? datasInicio[0] : null;
 
       const payload = {
         tipo,
@@ -266,107 +337,37 @@ function registrarEnvioFormulario(session) {
         nome,
         cnpj,
         statusEmpresa,
-        dataInicio,
-        dataTermino,
+        dataInicio: menorInicio, // Referência
+        dataTermino: maiorTermino, // Referência
         esocial: esocialValue === "sim",
         medicoCoordenador,
         observacoes,
-        documentos: {
-          pcmso: {
-            ...(empresaExistente?.documentos?.pcmso || {}),
-            ...documentos.pcmso,
-            ano: anoBase,
-          },
-          ltcat: {
-            ...(empresaExistente?.documentos?.ltcat || {}),
-            ...documentos.ltcat,
-            ano: anoBase,
-          },
-          pgr: {
-            ...(empresaExistente?.documentos?.pgr || {}),
-            ...documentos.pgr,
-            ano: anoBase,
-          },
-        },
+        documentos: documentosFinais,
       };
 
       let result;
       if (idExistente) {
-        result = updateCompany(idExistente, payload);
+        result = await updateCompany(idExistente, payload);
       } else {
-        result = addCompany(payload);
+        result = await addCompany(payload);
       }
 
-      if (!result) {
-        feedback.textContent =
-          "Não foi possível salvar os dados. Tente novamente.";
-        return;
+      if (result) {
+        feedback.textContent = "Cadastro salvo com sucesso!";
+        feedback.classList.add("success");
+        setTimeout(() => {
+          window.location.href = "../visualizar/index.html";
+        }, 1500);
+      } else {
+        throw new Error("Falha ao salvar no banco de dados.");
       }
 
-      feedback.classList.remove("error");
-      feedback.classList.add("success");
-      feedback.textContent = "Cadastro salvo com sucesso!";
-
-      // Após alguns segundos, volta para tela de visualização
-      setTimeout(() => {
-        window.location.href = "../visualizar/index.html";
-      }, 1000);
-    };
-
-    // Converte arquivos em Base64 (apenas os que foram enviados)
-    converterArquivosParaBase64(arquivos, empresaExistente, salvarComDocumentos);
-  });
-}
-
-/**
- * Converte os arquivos selecionados (PCMSO, LTCAT, PGR) para Base64
- * usando FileReader.
- * - Para documentos não enviados em edição, reaproveita os dados já existentes.
- */
-function converterArquivosParaBase64(arquivos, empresaExistente, callback) {
-  const resultado = {
-    pcmso: empresaExistente?.documentos?.pcmso || {},
-    ltcat: empresaExistente?.documentos?.ltcat || {},
-    pgr: empresaExistente?.documentos?.pgr || {},
-  };
-
-  const entradas = Object.entries(arquivos);
-  let pendentes = entradas.length;
-
-  if (pendentes === 0) {
-    callback(resultado);
-    return;
-  }
-
-  entradas.forEach(([tipo, file]) => {
-    if (!file) {
-      pendentes -= 1;
-      if (pendentes === 0) callback(resultado);
-      return;
+    } catch (err) {
+      console.error(err);
+      feedback.textContent = "Erro ao processar cadastro: " + err.message;
+      feedback.classList.add("error");
+      btnSalvar.disabled = false;
+      btnSalvar.textContent = "Salvar cadastro";
     }
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      resultado[tipo] = {
-        nomeArquivo: file.name,
-        dataUploadISO: new Date().toISOString(),
-        dataUrl: e.target.result,
-      };
-      pendentes -= 1;
-      if (pendentes === 0) {
-        callback(resultado);
-      }
-    };
-
-    reader.onerror = function () {
-      console.error("Erro ao ler arquivo PDF:", file.name);
-      pendentes -= 1;
-      if (pendentes === 0) {
-        callback(resultado);
-      }
-    };
-
-    reader.readAsDataURL(file);
   });
 }
-
